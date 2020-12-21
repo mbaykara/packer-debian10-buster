@@ -1,4 +1,4 @@
-This repo contain customizable packer configuration file for `Debian 10 or Debian Buster`
+This repo contains customizable packer configuration file for `Debian 10 or Debian Buster`
 
 
 
