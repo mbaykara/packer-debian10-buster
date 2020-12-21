@@ -1,0 +1,86 @@
+{
+  "variables": {
+      "vm_name": "runtime_v1.0.0",
+      "numvcpus": "1",
+      "memsize": "1024",
+      "disk_size": "40960",
+      "iso_url": "https://cdimage.debian.org/mirror/cdimage/release/current/amd64/iso-cd/debian-10.7.0-amd64-netinst.iso",
+      "iso_checksum": "b317d87b0a3d5b568f48a92dcabfc4bc51fe58d9f67ca13b013f1b8329d1306d",
+      "ssh_username" : "vagrant",
+      "ssh_password" : "vagrant",
+      "boot_wait": "5s"
+    },
+    "builders": [
+      {
+        "type": "virtualbox-iso",
+        "boot_command": [
+          "<esc><wait>",
+          "auto ",
+          "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+          "interface=auto <wait>",
+          "<enter>"
+       
+        ],
+        "boot_wait": "{{ user `boot_wait` }}",
+        "disk_size": "{{ user `disk_size` }}",
+        "headless": false,
+        "guest_os_type": "Debian_64",
+        "http_directory": "http",
+        "iso_checksum": "{{ user `iso_checksum` }}",
+        "iso_url": "{{ user `iso_url` }}",
+        "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+        "ssh_password": "{{ user `ssh_password` }}",
+        "ssh_port": 22,
+        "ssh_username": "{{ user `ssh_username` }}",
+        "ssh_timeout": "30m",
+        "vm_name": "{{ user `vm_name` }}",
+        "vboxmanage": [
+          ["modifyvm", "{{.Name}}", "--memory", "{{ user `memsize` }}"],
+          ["modifyvm", "{{.Name}}", "--cpus", "{{ user `numvcpus` }}"],
+          ["modifyvm", "{{.Name}}", "--nic1", "nat"],
+          ["modifyvm", "{{.Name}}", "--nic2",  "hostonly" ],
+          ["modifyvm", "{{.Name}}", "--hostonlyadapter2",  "vboxnet0" ]
+               
+        ]
+      }
+  ],
+    "post-processors": [
+    {
+      "compression_level": "8",
+      "output": "output/debian10.box",
+      "type": "vagrant"
+    },
+    {
+      "files": [
+        "output-virtualbox-iso/vbox-example-disk001.vmdk",
+        "output-virtualbox-iso/vbox-example.ovf"
+      ],
+      "type": "artifice"
+    }
+  ],
+  "provisioners": [
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/init.sh",
+      "type": "shell"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant'|{{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "inline": [
+        "apt-get -y update && apt-get -y upgrade"
+      ]
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant'|{{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "inline": [
+        "apt -y autoremove --purge",
+        "apt-get clean",
+        "dd if=/dev/zero of=/EMPTY bs=1M",
+        "rm -f /EMPTY",
+        "sync"
+      ]
+    }
+  ]
+}
