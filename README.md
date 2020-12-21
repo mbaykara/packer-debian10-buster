@@ -17,8 +17,8 @@ $ tree
 
 ```
 Requirements
-* packer 
-* Oracle Virtualbox
+* packer [here](https://www.packer.io/)
+* Oracle Virtualbox [here](https://www.virtualbox.org/)
 
 Then hit the terminal by:
 ```
